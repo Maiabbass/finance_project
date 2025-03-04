@@ -23,28 +23,28 @@ app.config_from_object('django.conf:settings', namespace='CELERY')
 app.autodiscover_tasks(['finance_data'])
 
 app.conf.beat_schedule = {
-    'update_currency_data_every_5_min': {
+    'update_currency_data_every_midnight': {
         'task': 'finance_data.tasks.update_currency_data',
-        'schedule': crontab(minute='*/5'),  # كل 5 دقائق
+        'schedule': crontab(hour=0, minute=0),  # كل منتصف ليل
     },
-    'update_predictions_every_5_min': {
+    'update_predictions_every_midnight': {
         'task': 'finance_data.tasks.update_predictions',
-        'schedule': crontab(minute='*/5'),
+        'schedule': crontab(hour=0, minute=0),
     },
-    'update_trading_analytics_every_5_min': {
+    'update_trading_analytics_every_midnight': {
         'task': 'finance_data.tasks.update_trading_analytics',
-        'schedule': crontab(minute='*/5'),
+        'schedule': crontab(hour=0, minute=0),
     },
-    'check_alerts_every_5_min': {
+    'check_alerts_every_midnight': {
         'task': 'finance_data.tasks.check_alerts',
-        'schedule': crontab(minute='*/5'),
+        'schedule': crontab(hour=0, minute=0),
     },
-    'update_trade_statuses_every_5_min': {
+    'update_trade_statuses_every_midnight': {
         'task': 'finance_data.tasks.update_trade_statuses',
-        'schedule': crontab(minute='*/5'),
+        'schedule': crontab(hour=0, minute=0),
     },
-    'update_user_statistics_every_5_min': {
+    'update_user_statistics_every_midnight': {
         'task': 'finance_data.tasks.update_user_statistics',
-        'schedule': crontab(minute='*/5'),
+        'schedule': crontab(hour=0, minute=0),
     },
 }
