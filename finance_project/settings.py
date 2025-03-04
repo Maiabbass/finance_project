@@ -198,7 +198,7 @@ import dj_database_url
 
 # إعدادات قاعدة البيانات
 DATABASES = {
-    'default': dj_database_url.config(default=os.environ.get('DATABASE_URL'))
+    'default': dj_database_url.config(default=os.environ.get('postgresql://finance_data_user:7NIwziVmp3NyqOdI6p7P7HwWuk6es12z@dpg-cv3mrht6l47c7386tht0-a.oregon-postgres.render.com/finance_data'))
 }
 
 # إعدادات Celery
