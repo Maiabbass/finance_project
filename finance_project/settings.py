@@ -145,15 +145,16 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 
 
-""""
+
 CELERY_BROKER_URL = 'redis://localhost:6379/0'
 CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
 CELERY_ACCEPT_CONTENT = ['json']
 CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
 CELERY_TIMEZONE = 'UTC'
+CELERY_BROKER_TRANSPORT_OPTIONS = {'visibility_timeout': 3600}
 
-"""
+
 
 # إعدادات التسجيل
 LOGGING = {
@@ -197,22 +198,22 @@ import os
 import dj_database_url
 
 # إعدادات قاعدة البيانات
+
+
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'finance_db',
-        'USER': 'Mai123',
-        'PASSWORD': 'mai123@mai123@',
-        'HOST': 'Mai123.mysql.pythonanywhere-services.com'  # غالبًا 'yourusername.mysql.pythonanywhere-services.com'
+        'NAME': 'finance_db',  # اسم قاعدة البيانات
+        'USER': 'Mai123',  # اسم المستخدم في PythonAnywhere
+        'PASSWORD': 'mai123@mai123@',  # كلمة المرور
+        'HOST': 'Mai123.mysql.pythonanywhere-services.com',  # المضيف الصحيح
+        'PORT': '3306',
+        'OPTIONS': {
+            'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
+        }
     }
 }
 
+DATABASES['default']['CONN_MAX_AGE'] = 500
 
-# إعدادات Celery
-CELERY_BROKER_URL = os.environ.get('REDIS_URL', 'redis://localhost:6379/0')
-CELERY_RESULT_BACKEND = os.environ.get('REDIS_URL', 'redis://localhost:6379/0')
-
-# إعدادات الأمان
-SECRET_KEY = os.environ.get('SECRET_KEY', 'tp3hhrwm=5w_omsm$(#)7r9spq7lc8iv^!lq4l1=+*d+lc-3gi')
-DEBUG = os.environ.get('DEBUG', 'False') == 'True'
-ALLOWED_HOSTS = ['your-app.onrender.com', 'localhost', '127.0.0.1']
