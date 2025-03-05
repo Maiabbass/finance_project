@@ -199,21 +199,19 @@ import dj_database_url
 
 # إعدادات قاعدة البيانات
 
-
-
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'finance_db',  # اسم قاعدة البيانات
-        'USER': 'Mai123',  # اسم المستخدم في PythonAnywhere
+        'NAME': 'Mai123$finance_db',  # اسم قاعدة البيانات كما يظهر في PythonAnywhere
+        'USER': 'Mai123',  # اسم المستخدم
         'PASSWORD': 'mai123@mai123@',  # كلمة المرور
         'HOST': 'Mai123.mysql.pythonanywhere-services.com',  # المضيف الصحيح
         'PORT': '3306',
         'OPTIONS': {
             'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
+            'charset': 'utf8mb4',  # دعم اللغة العربية
         }
     }
 }
 
-DATABASES['default']['CONN_MAX_AGE'] = 500
-
+DATABASES['default']['CONN_MAX_AGE'] = 600
