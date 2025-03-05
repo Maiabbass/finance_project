@@ -198,8 +198,15 @@ import dj_database_url
 
 # إعدادات قاعدة البيانات
 DATABASES = {
-    'default': dj_database_url.config(default=os.environ.get('postgresql://finance_data_user:7NIwziVmp3NyqOdI6p7P7HwWuk6es12z@dpg-cv3mrht6l47c7386tht0-a.oregon-postgres.render.com/finance_data'))
+    'default': {
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'finance_db',
+        'USER': 'Mai123',
+        'PASSWORD': 'mai123@mai123@',
+        'HOST': 'Mai123.mysql.pythonanywhere-services.com'  # غالبًا 'yourusername.mysql.pythonanywhere-services.com'
+    }
 }
+
 
 # إعدادات Celery
 CELERY_BROKER_URL = os.environ.get('REDIS_URL', 'redis://localhost:6379/0')
