@@ -217,13 +217,32 @@ DATABASES = {
 DATABASES['default']['CONN_MAX_AGE'] = 0
 
 """
+
 import os
 from pathlib import Path
 import dj_database_url
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# محاولة استخدام DATABASE_URL أو الإعدادات المباشرة
+# إنشاء رابط قاعدة البيانات يدويًا
+DATABASE_URL = 'mysql://Mai123:mai123@mai123@Mai123.mysql.pythonanywhere-services.com:3306/Mai123$finance_db'
+
+# استخدام dj_database_url للتحويل
+DATABASES = {
+    'default': dj_database_url.config(
+        default=DATABASE_URL,
+        conn_max_age=600,
+        ssl_require=False
+    )
+}
+
+# طباعة معلومات الاتصال للتشخيص
+print(f"Database Configuration: {DATABASES}")
+
+
+DATABASE_URL='mysql://Mai123:mai123@mai123@Mai123.mysql.pythonanywhere-services.com:3306/Mai123$finance_db'
+
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
@@ -238,8 +257,3 @@ DATABASES = {
         }
     }
 }
-
-# طباعة معلومات الاتصال للتشخيص
-print(f"Database Name: {DATABASES['default']['NAME']}")
-print(f"Database Host: {DATABASES['default']['HOST']}")
-print(f"Database User: {DATABASES['default']['USER']}")
