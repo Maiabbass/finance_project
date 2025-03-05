@@ -218,32 +218,28 @@ DATABASES['default']['CONN_MAX_AGE'] = 0
 
 """
 import os
-import dj_database_url
 from pathlib import Path
+import dj_database_url
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# حاول استخدام متغير البيئة أولاً، وإلا استخدم الإعدادات الافتراضية
+# محاولة استخدام DATABASE_URL أو الإعدادات المباشرة
 DATABASES = {
-    'default': dj_database_url.config(
-        default='mysql://Mai123:mai123@mai123@Mai123.mysql.pythonanywhere-services.com:3306/Mai123$finance_db',
-        conn_max_age=0
-    )
-}
-
-# إذا فشل التكوين أعلاه، استخدم الإعدادات اليدوية
-if not DATABASES['default']:
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.mysql',
-            'NAME': 'Mai123$finance_db',
-            'USER': 'Mai123',
-            'PASSWORD': 'mai123@mai123@',
-            'HOST': 'Mai123.mysql.pythonanywhere-services.com',
-            'PORT': '3306',
-            'OPTIONS': {
-                'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
-                'charset': 'utf8mb4',
-            }
+    'default': {
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'Mai123$finance_db',
+        'USER': 'Mai123',
+        'PASSWORD': 'mai123@mai123@',
+        'HOST': 'Mai123.mysql.pythonanywhere-services.com',
+        'PORT': '3306',
+        'OPTIONS': {
+            'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
+            'charset': 'utf8mb4',
         }
     }
+}
+
+# طباعة معلومات الاتصال للتشخيص
+print(f"Database Name: {DATABASES['default']['NAME']}")
+print(f"Database Host: {DATABASES['default']['HOST']}")
+print(f"Database User: {DATABASES['default']['USER']}")
