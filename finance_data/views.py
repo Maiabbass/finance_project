@@ -1,4 +1,4 @@
-from datetime import timezone
+from datetime import timezone , datetime
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
@@ -15,6 +15,8 @@ from .models import FinancialData, UserProfile
 from .serializers import *
 from django.utils import timezone
 from rest_framework.permissions import IsAuthenticated
+import csv
+from django.http import JsonResponse
 
 
 class FinancialDataListView(APIView):
@@ -374,3 +376,41 @@ class UserProfileView(APIView):
                 'data': serializer.data
             })
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+
+
+
+
+class UploadFinancialData(APIView):
+    def post(self, request, *args, **kwargs):
+        if 'file' not in request.FILES:
+            return JsonResponse({"error": "No file uploaded"}, status=400)
+
+        file = request.FILES['file']
+        decoded_file = file.read().decode('utf-8').splitlines()
+        reader = csv.DictReader(decoded_file)
+
+        for row in reader:
+            # تحويل التاريخ من MM/DD/YYYY إلى YYYY-MM-DD
+            date_obj = datetime.strptime(row['Date'], '%m/%d/%Y')
+            formatted_date = date_obj.strftime('%Y-%m-%d')
+
+            data = {
+                'date': formatted_date,
+                'ticker': 'XRP/USDT',
+                'open_price': row['Open'],
+                'high_price': row['High'],
+                'low_price': row['Low'],
+                'close_price': row['Price'],
+                'volume': row['Vol'],
+                'percent_change': row['Change %'].rstrip('%'),
+                'adj_close': row['Price'],  # يمكنك استخدام نفس قيمة close_price إذا لم يكن لديك adj_close
+            }
+            serializer = FinancialDataSerializer(data=data)
+            if serializer.is_valid():
+                serializer.save()
+            else:
+                return JsonResponse(serializer.errors, status=400)
+
+        return JsonResponse({"message": "Data uploaded successfully"}, status=201)

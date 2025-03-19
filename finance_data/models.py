@@ -15,7 +15,7 @@ class FinancialData(models.Model):
     high_price = models.DecimalField(max_digits=10, decimal_places=6)
     low_price = models.DecimalField(max_digits=10, decimal_places=6)
     close_price = models.DecimalField(max_digits=10, decimal_places=6)
-    adj_close = models.DecimalField(max_digits=10, decimal_places=6, null=False)
+    adj_close = models.DecimalField(max_digits=10, decimal_places=6, null=False , blank=True)
     volume = models.DecimalField(max_digits=20, decimal_places=6)
 
     rsi = models.DecimalField(max_digits=10, decimal_places=6, null=True, blank=True)

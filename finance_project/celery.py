@@ -26,6 +26,7 @@ app.conf.beat_schedule = {
     'update_currency_data_every_midnight': {
         'task': 'finance_data.tasks.update_currency_data',
         'schedule': crontab(hour=0, minute=0),  # كل منتصف ليل
+        #'schedule': timedelta(minutes=5),
     },
     'update_predictions_every_midnight': {
         'task': 'finance_data.tasks.update_predictions',

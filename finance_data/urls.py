@@ -20,6 +20,10 @@ urlpatterns = [
 
     #لتعديل البروفايل
     path('profile/', UserProfileView.as_view(), name='user-profile'),
+
+
+    #لتحميل الداتا 
+    path('upload/', UploadFinancialData.as_view(), name='upload-financial-data'),
        
 ]
 
