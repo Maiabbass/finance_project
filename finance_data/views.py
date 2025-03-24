@@ -1,4 +1,4 @@
-from datetime import timezone , datetime
+from datetime import timedelta, timezone , datetime
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
@@ -405,7 +405,7 @@ class UploadFinancialData(APIView):
                 'close_price': row['Price'],
                 'volume': row['Vol'],
                 'percent_change': row['Change %'].rstrip('%'),
-                'adj_close': row['Price'],  # يمكنك استخدام نفس قيمة close_price إذا لم يكن لديك adj_close
+                'adj_close': row['Price'], 
             }
             serializer = FinancialDataSerializer(data=data)
             if serializer.is_valid():
@@ -414,3 +414,28 @@ class UploadFinancialData(APIView):
                 return JsonResponse(serializer.errors, status=400)
 
         return JsonResponse({"message": "Data uploaded successfully"}, status=201)
+    
+
+
+
+class FinancialDataModel(APIView):
+    def get(self, request, *args, **kwargs):
+
+        date_str = request.query_params.get('date', None)
+        if not date_str:
+            return Response({"error": "Date parameter is required"}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            date = datetime.strptime(date_str, '%Y-%m-%d').date()
+        except ValueError:
+            return Response({"error": "Invalid date format. Use YYYY-MM-DD."}, status=status.HTTP_400_BAD_REQUEST)
+
+        start_date = date - timedelta(days=15)
+
+        financial_data = FinancialData.objects.filter(
+            date__range=[start_date, date]
+        ).order_by('date')  # ترتيب البيانات حسب التاريخ
+
+        serializer = FinancialDataModelSerializer(financial_data, many=True)
+
+        return Response(serializer.data, status=status.HTTP_200_OK)

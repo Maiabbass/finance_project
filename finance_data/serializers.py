@@ -6,7 +6,7 @@ from .models import FinancialData, UserProfile
 class FinancialDataSerializer(serializers.ModelSerializer):
     class Meta:
         model = FinancialData
-        fields = '__all__'  # يمكنك تخصيص الحقول حسب الحاجة
+        fields = '__all__'  
 
 class UserRegistrationSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True, min_length=6)
@@ -54,3 +54,35 @@ class UserProfileSerializer(serializers.ModelSerializer):
         model = UserProfile
         fields = ['username', 'email', 'phone_number', 'address', 'birth_date', 
                  'nationality', 'balance', 'is_trader', 'profile_picture']
+
+
+
+
+class FinancialDataModelSerializer(serializers.ModelSerializer):
+    percent_change_formatted = serializers.SerializerMethodField()
+
+    class Meta:
+        model = FinancialData
+        fields = [
+            'id',
+            'percent_change_formatted',
+            'date',
+            'ticker',
+            'open_price',
+            'high_price',
+            'low_price',
+            'close_price',
+            'adj_close',
+            'volume',
+        ]
+
+    def get_percent_change_formatted(self, obj):
+        # إذا كان percent_change موجودًا في النموذج، نستخدمه
+        if obj.percent_change is not None:
+            return f"{obj.percent_change:.2f}%"
+        # إذا لم يكن موجودًا، نحسبه من close_price و open_price
+        try:
+            percent_change = ((obj.close_price - obj.open_price) / obj.open_price) * 100
+            return f"{percent_change:.2f}%"
+        except (TypeError, ZeroDivisionError):
+            return "0.00%"

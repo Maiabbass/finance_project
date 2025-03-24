@@ -24,6 +24,9 @@ urlpatterns = [
 
     #لتحميل الداتا 
     path('upload/', UploadFinancialData.as_view(), name='upload-financial-data'),
+
+    #لارسال البيانات لمودل الذكاء
+    path('financial-data-For-Model/', FinancialDataModel.as_view(), name='financial-data')
        
 ]
 
