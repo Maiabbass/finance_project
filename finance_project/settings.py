@@ -25,13 +25,13 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = "django-insecure-f_25a+#175d!7g)dlfy54#h&qoq-2=tj$xbkeh+29p$n9sp@hs"
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
-
+ 
 INSTALLED_APPS = [
     "django.contrib.admin",
     "django.contrib.auth",
@@ -194,7 +194,7 @@ EMAIL_HOST_PASSWORD = 'oucr ryjk mzfu iqcv'
 
 
 
-
+"""
 #Hosting
 import os
 import dj_database_url
@@ -204,21 +204,21 @@ import dj_database_url
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'Mai123$finance_db',  # اسم قاعدة البيانات كما يظهر في PythonAnywhere
-        'USER': 'Mai123',  # اسم المستخدم
-        'PASSWORD': 'mai123@mai123@',  # كلمة المرور
-        'HOST': 'Mai123.mysql.pythonanywhere-services.com',  # المضيف الصحيح
-        'PORT': '3306',
+        'NAME': 'Mai123$finance_db',
+        'USER': 'Mai123',
+        'PASSWORD': 'mai123@mai123@',
+        'HOST': 'Mai123.mysql.pythonanywhere-services.com',
+        'PORT': '3307',
         'OPTIONS': {
             'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
-            'charset': 'utf8mb4',  # دعم اللغة العربية
+            'charset': 'utf8mb4',
         }
     }
 }
 
-DATABASES['default']['CONN_MAX_AGE'] = 0
 
-"""
+
+
 
 
 import os
@@ -263,5 +263,12 @@ DATABASES = {
 
 """
 
+DATABASE_URL='sql://root:DdWQxBuPEOIBJLImjwyxnIlXObjYBfYQ@centerbeam.proxy.rlwy.net:10152/railway'
+import os
+import dj_database_url
+
+DATABASES = {
+    'default': dj_database_url.config(default=os.getenv('DATABASE_URL'))
+}
 
 
