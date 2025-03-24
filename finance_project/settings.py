@@ -91,7 +91,7 @@ WSGI_APPLICATION = "finance_project.wsgi.application"
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
-
+"""
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
@@ -102,7 +102,7 @@ DATABASES = {
         'PORT': '3306',
     }
 }
-
+"""
 
 # Password validation
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
@@ -193,7 +193,7 @@ EMAIL_HOST_PASSWORD = 'oucr ryjk mzfu iqcv'
 
 
 
-"""
+
 
 #Hosting
 import os
@@ -218,7 +218,7 @@ DATABASES = {
 
 DATABASES['default']['CONN_MAX_AGE'] = 0
 
-
+"""
 
 
 import os
