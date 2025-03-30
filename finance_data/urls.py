@@ -2,7 +2,7 @@ from django.urls import path
 from .views import *
 
 urlpatterns = [
-    #لمودل الذكاء
+    #تسجيل الدخول وتوزيع الصلاحيات
     path('get-financial-data/', FinancialDataListView.as_view(), name='get-financial-data'),
     path('register/', RegisterUserView.as_view(), name='register'),
     path('verify-registration/', VerifyRegistrationView.as_view(), name='verify-registration'),
@@ -26,7 +26,30 @@ urlpatterns = [
     path('upload/', UploadFinancialData.as_view(), name='upload-financial-data'),
 
     #لارسال البيانات لمودل الذكاء
-    path('financial-data-For-Model/', FinancialDataModel.as_view(), name='financial-data')
-       
+    path('financial-data-For-Model/', FinancialDataModel.as_view(), name='financial-data'),
+
+
+    # بإرجاع بيانات سعر العملة في تاريخ معين بناءً على ticker و date.
+    path('currency-price/', CurrencyPriceAPIView.as_view(), name='currency-price'),
+
+
+
+
+
+    # API لحساب الفرق بين سعر الشراء والبيع بناءً على بيانات FinancialData
+    path('currency-difference/', CurrencyDifferenceAPIView.as_view(), name='currency-difference'),
+
+
+
+    # API لحساب الربح من قاعدة البيانات
+    path('profit/', ProfitCalculatorAPIView.as_view(), name='profit-calculator'),
+
+
+    # API لحساب سعر البيع
+    path('selling-price/', SellingPriceAPIView.as_view(), name='selling-price'),
+
+
 ]
+       
+
 

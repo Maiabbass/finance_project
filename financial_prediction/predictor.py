@@ -1,129 +1,114 @@
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
 import torch
-import os
+import torch.nn as nn
 import numpy as np
-from django.conf import settings
+import joblib
 from datetime import datetime, timedelta
-from decimal import Decimal
-from finance_data.models import FinancialData  # استيراد النموذج من التطبيق الصحيح
+import os
+from finance_data.models import FinancialData  # استيراد النموذج الخاص بك
+import pandas as pd
 
-# تعريف بنية النموذج المطابقة للأوزان المحفوظة
-class FinancialModel(torch.nn.Module):
-    def __init__(self):
-        super(FinancialModel, self).__init__()
-        self.lstm = torch.nn.LSTM(input_size=7, hidden_size=64, num_layers=1, batch_first=True)
-        self.fc = torch.nn.Linear(64, 7)
+class NeuralNetwork(nn.Module):
+    def __init__(self, num_feature):
+        super(NeuralNetwork, self).__init__()
+        self.lstm = nn.LSTM(num_feature, 64, batch_first=True)
+        self.fc = nn.Linear(64, num_feature)
 
     def forward(self, x):
-        output, _ = self.lstm(x)
-        output = self.fc(output[:, -1, :])
-        return output
+        output, (hidden, cell) = self.lstm(x)
+        x = self.fc(hidden)
+        return x
 
 class FinancialPredictor:
     def __init__(self):
-        self.model = None
-        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-        self.model_loaded = False
+        self.num_features = 7  # عدد الخصائص المستخدمة
+        self.model = NeuralNetwork(self.num_features)
 
-    def load_model(self):
-        if self.model_loaded:
-            return True
-        try:
-            model_path = 'C:\\finance_project\\financial_prediction\\models\\saved_weights_all (1).pt'
+        # تحميل الأوزان
+        weights_path = os.path.join(os.path.dirname(__file__), "models", "saved_weights_all (1).pt")
+        self.model.load_state_dict(torch.load(weights_path, map_location=torch.device('cpu')))
+        self.model.eval()
 
-            self.model = FinancialModel()
-            checkpoint = torch.load(model_path, map_location=self.device)
+        # تحميل المقياس
+        scaler_path = os.path.join(os.path.dirname(__file__), "models", "scaler_all.pkl")
+        self.scaler = joblib.load(scaler_path)
 
-            print(f"نوع البيانات المحملة: {type(checkpoint)}")
-            print(f"المفاتيح المتاحة: {checkpoint.keys()}")
+    def calculate_moving_averages(self, df):
+        """حساب المتوسطات المتحركة"""
+        df["5d_sma"] = df["Close"].astype(float).rolling(5).mean().fillna(df["Close"])
+        df["9d_sma"] = df["Close"].astype(float).rolling(9).mean().fillna(df["Close"])
+        df["17d_sma"] = df["Close"].astype(float).rolling(17).mean().fillna(df["Close"])
+        return df
 
-            # التأكد من تطابق أسماء وأشكال الطبقات
-            print("Model state dict:")
-            for k, v in self.model.state_dict().items():
-                print(f"{k} --> {v.shape}")
+    def preprocess_data(self, queryset):
+        """معالجة البيانات وإعدادها للتنبؤ"""
+        # تحويل QuerySet إلى DataFrame
+        df = pd.DataFrame.from_records(queryset.values())
+        
+        # تحويل الأعمدة إلى الأنواع الصحيحة
+        columns_to_convert = ['open_price', 'high_price', 'low_price', 'close_price']
+        for col in columns_to_convert:
+            df[col] = pd.to_numeric(df[col], errors='coerce')
+        
+        # إعادة تسمية الأعمدة
+        df = df.rename(columns={
+            'open_price': 'Open', 
+            'high_price': 'High', 
+            'low_price': 'Low', 
+            'close_price': 'Close'
+        })
+        
+        # التأكد من ترتيب البيانات تصاعدياً حسب التاريخ
+        df = df.sort_values('date')
+        
+        # حساب المتوسطات المتحركة
+        df = self.calculate_moving_averages(df)
+        
+        return df
 
-            print("Checkpoint state dict:")
-            for k, v in checkpoint.items():
-                print(f"{k} --> {v.shape if hasattr(v, 'shape') else 'No shape'}")
-
-            self.model.load_state_dict(checkpoint)
-            self.model.eval()
-            self.model_loaded = True
-            return True
-
-        except Exception as e:
-            print(f"خطأ في تحميل النموذج: {e}")
-            return False
-
-    def get_data_for_prediction(self, date_str, ticker):
-        """
-        استخراج بيانات 25 يوم سابقة بالإضافة لتاريخ محدد لتحضير مدخلات النموذج
-        """
-        try:
-            target_date = datetime.strptime(date_str, '%Y-%m-%d').date()
-            start_date = target_date - timedelta(days=25)
-
-            financial_data = FinancialData.objects.filter(
-                ticker=ticker,
-                date__gte=start_date,
-                date__lte=target_date
-            ).order_by('date')
-
-            print("Financial Data:", financial_data)
-
-            if financial_data.count() < 26:
-                return None, "لا توجد بيانات كافية للتنبؤ. يجب توفر بيانات 25 يوم سابقة على الأقل."
-
-            features = []
-            for data in financial_data:
-                day_of_week = data.date.weekday()  # (0-6)
-                features.append([
-                    float(data.open_price),
-                    float(data.high_price),
-                    float(data.low_price),
-                    float(data.close_price),
-                    float(data.volume),
-                    float(data.percent_change) if data.percent_change else 0.0,
-                    day_of_week
-                ])
-
-            print("Features prepared for prediction:", features)
-            return np.array(features, dtype=np.float32), None
-
-        except ValueError:
-            return None, "صيغة التاريخ غير صحيحة. الرجاء استخدام صيغة YYYY-MM-DD."
-        except Exception as e:
-            return None, f"حدث خطأ أثناء استخراج البيانات: {str(e)}"
+    def predict_price(self, data):
+        """التنبؤ بالسعر"""
+        data_tensor = torch.tensor(data, dtype=torch.float32).unsqueeze(0)
+        with torch.no_grad():
+            prediction = self.model(data_tensor)
+        predicted_scaled = prediction.numpy().flatten()
+        predicted_original = self.scaler.inverse_transform(predicted_scaled.reshape(-1, 1)).flatten()
+        return predicted_original[-1]
 
     def predict(self, date_str, ticker):
-        if not self.load_model():
-            return None, "فشل تحميل النموذج"
-
-        input_data, error = self.get_data_for_prediction(date_str, ticker)
-        if error:
-            return None, error
-
         try:
-            input_tensor = torch.tensor(input_data, dtype=torch.float32).unsqueeze(0).to(self.device)
-            print("Input Tensor Shape:", input_tensor.shape)
-            print("Input Tensor:", input_tensor)
+            # تحويل التاريخ
+            date_obj = datetime.strptime(date_str, "%Y-%m-%d").date()
 
-            with torch.no_grad():
-                prediction = self.model(input_tensor)
+            # جلب البيانات من قاعدة البيانات
+            queryset = FinancialData.objects.filter(
+                ticker=ticker,
+                date__lt=date_obj
+            ).order_by('-date')[:12]  # زيادة العدد إلى 12 للسماح بحساب المتوسطات المتحركة
 
-            print("Model prediction before formatting:", prediction)
-            print("All predicted values:", prediction[0].detach().cpu().numpy())
+            if queryset.count() < 11:
+                return None, "لا توجد بيانات كافية قبل هذا التاريخ للتنبؤ."
 
-            # استخراج القيمة الرابعة كتوقع للتغير بالنسبة المئوية
-            predicted_value = prediction[0, 3].item()
+            # معالجة البيانات
+            data_df = self.preprocess_data(queryset)
 
-            formatted_prediction = f"{predicted_value:.2f}%"
-            if predicted_value > 0:
-                formatted_prediction = f"+{formatted_prediction}"
-            else:
-                formatted_prediction = f"{formatted_prediction}"
+            # تجهيز البيانات للتنبؤ
+            data_input = data_df.iloc[-11:][
+                ["Open", "High", "Low", "5d_sma", "9d_sma", "17d_sma", "Close"]
+            ].values.astype(np.float64)
 
-            print("Formatted Prediction:", formatted_prediction)
-            return formatted_prediction, None
+            # تحجيم البيانات
+            data_scaled = np.zeros_like(data_input, dtype=np.float64)
+            for i in range(data_input.shape[1]):
+                data_scaled[:, i] = self.scaler.transform(data_input[:, i].reshape(-1, 1)).flatten()
 
+            # التنبؤ
+            prediction = self.predict_price(data_scaled)
+
+            return round(float(prediction), 4), None
+
+        except FinancialData.DoesNotExist:
+            return None, "ملف البيانات الخاص بهذه الشركة غير موجود."
         except Exception as e:
-            return None, f"خطأ في التنبؤ: {str(e)}"
+            return None, str(e)

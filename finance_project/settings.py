@@ -25,13 +25,13 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = "django-insecure-f_25a+#175d!7g)dlfy54#h&qoq-2=tj$xbkeh+29p$n9sp@hs"
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = []
 
 
 # Application definition
- 
+
 INSTALLED_APPS = [
     "django.contrib.admin",
     "django.contrib.auth",
@@ -91,7 +91,7 @@ WSGI_APPLICATION = "finance_project.wsgi.application"
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
-"""
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
@@ -102,7 +102,7 @@ DATABASES = {
         'PORT': '3306',
     }
 }
-"""
+
 
 # Password validation
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
@@ -218,31 +218,12 @@ DATABASES = {
 
 
 
+"""
 
 
 
-import os
-from pathlib import Path
-import dj_database_url
 
-BASE_DIR = Path(__file__).resolve().parent.parent
-
-# إنشاء رابط قاعدة البيانات يدويًا
-DATABASE_URL = 'mysql://Mai123:mai123@mai123@Mai123.mysql.pythonanywhere-services.com:3306/Mai123$finance_db'
-
-# استخدام dj_database_url للتحويل
-DATABASES = {
-    'default': dj_database_url.config(
-        default=DATABASE_URL,
-        conn_max_age=600,
-        ssl_require=False
-    )
-}
-
-# طباعة معلومات الاتصال للتشخيص
-print(f"Database Configuration: {DATABASES}")
-
-
+"""
 DATABASE_URL='mysql://Mai123:mai123@mai123@Mai123.mysql.pythonanywhere-services.com:3306/Mai123$finance_db'
 
 
@@ -263,12 +244,5 @@ DATABASES = {
 
 """
 
-DATABASE_URL='sql://root:DdWQxBuPEOIBJLImjwyxnIlXObjYBfYQ@centerbeam.proxy.rlwy.net:10152/railway'
-import os
-import dj_database_url
-
-DATABASES = {
-    'default': dj_database_url.config(default=os.getenv('DATABASE_URL'))
-}
 
 

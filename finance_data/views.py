@@ -1,4 +1,5 @@
 from datetime import timedelta, timezone , datetime
+from decimal import Decimal
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
@@ -439,3 +440,96 @@ class FinancialDataModel(APIView):
         serializer = FinancialDataModelSerializer(financial_data, many=True)
 
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+
+
+
+class CurrencyPriceAPIView(APIView):
+   
+    
+    def get(self, request):
+        ticker = request.GET.get('ticker')
+        date = request.GET.get('date')
+
+        if not ticker or not date:
+            return Response({"detail": "ticker and date are required"}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            data = FinancialData.objects.get(ticker=ticker, date=date)
+            serializer = FinancialDataModelSerializer(data)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except FinancialData.DoesNotExist:
+            return Response({"detail": "Data not found."}, status=status.HTTP_404_NOT_FOUND)
+
+            
+
+
+
+
+
+
+class CurrencyDifferenceAPIView(APIView):
+    """
+    API لحساب الفرق بين سعر الشراء والبيع بناءً على بيانات FinancialData
+    """
+    def get(self, request):
+        ticker = request.GET.get('ticker')
+        date = request.GET.get('date')
+
+        if not ticker or not date:
+            return Response({'detail': 'ticker and date are required.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            data = FinancialData.objects.get(ticker=ticker, date=date)
+            difference = data.close_price - data.open_price
+            return Response({'difference': str(difference)}, status=status.HTTP_200_OK)
+        except FinancialData.DoesNotExist:
+            return Response({'detail': 'Financial data not found.'}, status=status.HTTP_404_NOT_FOUND)
+        
+
+
+
+
+
+
+class ProfitCalculatorAPIView(APIView):
+    """
+    API لحساب الربح من قاعدة البيانات فقط
+    """
+    def get(self, request):
+        ticker = request.GET.get('ticker')
+        date = request.GET.get('date')
+
+        if not ticker or not date:
+            return Response({"detail": "ticker and date are required."}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            data = FinancialData.objects.get(ticker=ticker, date=date)
+            price_diff = data.close_price - data.open_price
+            quantity = data.volume  # الحساب بناءً على حجم التداول (volume) داخل قاعدة البيانات
+            profit = price_diff * quantity
+            return Response({"profit": str(profit)}, status=status.HTTP_200_OK)
+        except FinancialData.DoesNotExist:
+            return Response({"detail": "Data not found."}, status=status.HTTP_404_NOT_FOUND)
+
+
+class SellingPriceAPIView(APIView):
+    """
+    API لحساب سعر البيع من قاعدة البيانات فقط
+    """
+    def get(self, request):
+        ticker = request.GET.get('ticker')
+        date = request.GET.get('date')
+
+        if not ticker or not date:
+            return Response({"detail": "ticker and date are required."}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            data = FinancialData.objects.get(ticker=ticker, date=date)
+            buy_price = data.open_price
+            margin_percentage = Decimal(10)  # الهامش ثابت 10% أو عدله حسب حاجتك
+            selling_price = buy_price + (buy_price * margin_percentage / 100)
+            return Response({"selling_price": str(selling_price)}, status=status.HTTP_200_OK)
+        except FinancialData.DoesNotExist:
+            return Response({"detail": "Data not found."}, status=status.HTTP_404_NOT_FOUND)
